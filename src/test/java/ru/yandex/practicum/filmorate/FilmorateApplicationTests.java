@@ -20,10 +20,6 @@ class FilmorateApplicationTests {
     private MockMvc mockMvc;
 
     @Test
-    void contextLoads() {
-    }
-
-    @Test
     void shouldReturnBadRequestWhenFilmNameIsEmpty() throws Exception {
         String filmJson = "{\"name\": \"\", \"description\": \"Описание фильма\", \"duration\": 120, \"releaseDate\": \"2020-01-01\"}";
 
@@ -68,7 +64,7 @@ class FilmorateApplicationTests {
                         .content(userJson))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Логин не может быть пустым и содержать пробелы"));
+                .andExpect(jsonPath("$.message").value("Логин не может быть пустым и не должен содержать пробелы"));
     }
 
     @Test
@@ -80,7 +76,7 @@ class FilmorateApplicationTests {
                         .content(userJson))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Название не может быть пустым и должна содержать символ @"));
+                .andExpect(jsonPath("$.message").value("Email не может быть пустым и должен содержать символ @"));
     }
 
     @Test
@@ -92,7 +88,7 @@ class FilmorateApplicationTests {
                         .content(userJson))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Название не может быть пустым и должна содержать символ @"));
+                .andExpect(jsonPath("$.message").value("Email не может быть пустым и должен содержать символ @"));
     }
 
     @Test

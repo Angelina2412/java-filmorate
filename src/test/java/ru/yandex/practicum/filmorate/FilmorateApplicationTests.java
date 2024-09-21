@@ -102,5 +102,17 @@ class FilmorateApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Kitty"));
     }
+
+    @Test
+    void shouldReturnBadRequestWhenReleaseDateIsTooEarly() throws Exception {
+        String filmJson = "{\"name\": \"Name\", \"description\": \"Description\", \"releaseDate\": \"1890-03-25\", \"duration\": 200}";
+
+        mockMvc.perform(post("/films")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(filmJson))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Дата релиза не может быть раньше 28 декабря 1895 года"));
+    }
 }
 

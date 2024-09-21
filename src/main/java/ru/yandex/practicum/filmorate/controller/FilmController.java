@@ -3,8 +3,11 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +26,11 @@ public class FilmController {
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
+        LocalDate minReleaseDate = LocalDate.of(1895, Month.DECEMBER, 28);
+        if (film.getReleaseDate() != null && film.getReleaseDate().isBefore(minReleaseDate)) {
+            log.error("Валидация releaseDate не пройдена");
+            throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
+        }
         film.setId(getNextId());
         films.put(film.getId(), film);
         log.info("Добавлен новый фильм с id = {}", film.getId());

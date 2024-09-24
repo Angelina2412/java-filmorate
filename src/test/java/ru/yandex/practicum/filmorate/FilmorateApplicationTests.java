@@ -152,7 +152,7 @@ class FilmorateApplicationTests {
                .andDo(print())
                .andExpect(status().isOk());
 
-        mockMvc.perform(put("/films/1/like/1"))
+        mockMvc.perform(put("/films/199/like/1"))
                .andDo(print())
                .andExpect(status().isNotFound());
     }
@@ -167,7 +167,7 @@ class FilmorateApplicationTests {
                .andDo(print())
                .andExpect(status().isOk());
 
-        mockMvc.perform(put("/films/1/like/1"))
+        mockMvc.perform(put("/films/1/like/199"))
                .andDo(print())
                .andExpect(status().isNotFound());
     }
@@ -205,7 +205,7 @@ class FilmorateApplicationTests {
                .andDo(print())
                .andExpect(status().isOk());
 
-        mockMvc.perform(delete("/films/1/like/1"))
+        mockMvc.perform(delete("/films/100/like/1"))
                .andDo(print())
                .andExpect(status().isNotFound());
     }
@@ -220,7 +220,7 @@ class FilmorateApplicationTests {
                .andDo(print())
                .andExpect(status().isOk());
 
-        mockMvc.perform(delete("/films/1/like/1"))
+        mockMvc.perform(delete("/films/1/like/134"))
                .andDo(print())
                .andExpect(status().isNotFound());
     }

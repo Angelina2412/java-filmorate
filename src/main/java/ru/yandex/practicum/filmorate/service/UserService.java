@@ -30,6 +30,17 @@ public class UserService {
 
         user.getFriends().add(friend);
         friend.getFriends().add(user);
+        userStorage.update(user);
+    }
+
+    public User findUserById(Long userId) {
+        User user = userStorage.findByIdUser(userId);
+
+        if (user == null) {
+            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
+        }
+
+        return userStorage.findByIdUser(userId);
     }
 
     public void removeFriend(Long userId, Long friendId) {
@@ -45,6 +56,7 @@ public class UserService {
 
         user.getFriends().remove(friend);
         friend.getFriends().remove(user);
+        userStorage.update(user);
     }
 
     public Set<User> getCommonFriends(Long userId, Long otherUserId) {

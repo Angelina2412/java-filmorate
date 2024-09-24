@@ -56,4 +56,9 @@ public class FilmService {
                           .limit(count)
                           .collect(Collectors.toList());
     }
+
+    public boolean exists(Long filmId) {
+        return filmStorage.findByIdFilm(filmId) != null;
+    }
+
 }

@@ -291,7 +291,6 @@ class FilmorateApplicationTests {
                .andDo(print())
                .andExpect(status().isOk());
     }
-
 }
 
 

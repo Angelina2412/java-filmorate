@@ -291,6 +291,23 @@ class FilmorateApplicationTests {
                .andDo(print())
                .andExpect(status().isOk());
     }
+
+    @Test
+    void shouldReturnSystemErrorWhenFilmNotExist() throws Exception {
+        String filmJson = "{\"name\": \"Name\", \"description\": \"Description\", \"releaseDate\": \"1990-03-25\", \"duration\": 200}";
+
+        mockMvc.perform(post("/films")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(filmJson))
+               .andDo(print())
+               .andExpect(status().isOk());
+        String updateJson = "{\"name\": \"Name\", \"description\": \"Description\", \"releaseDate\": \"1990-03-25\", \"duration\": 300}";
+
+        mockMvc.perform(put("/films/45").contentType(MediaType.APPLICATION_JSON)
+                                       .content(updateJson))
+               .andDo(print())
+               .andExpect(status().isNotFound());
+    }
 }
 
 

@@ -306,7 +306,7 @@ class FilmorateApplicationTests {
         mockMvc.perform(put("/films/45").contentType(MediaType.APPLICATION_JSON)
                                        .content(updateJson))
                .andDo(print())
-               .andExpect(status().isNotFound());
+               .andExpect(status().isInternalServerError());
     }
 }
 

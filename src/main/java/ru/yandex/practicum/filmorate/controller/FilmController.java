@@ -70,13 +70,16 @@ public class FilmController {
         return filmService.getMostPopularFilms(count);
     }
 
-    @PutMapping("/films/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Film> updateFilm(@PathVariable Long id, @RequestBody Film film) {
         if (!filmService.exists(id)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            throw new IllegalArgumentException("Фильм с id = " + id + " не найден");
         }
-        Film updatedFilm = filmStorage.update(film);
-        return ResponseEntity.ok(updatedFilm);
+        try {
+            Film updatedFilm = filmStorage.update(film);
+            return ResponseEntity.ok(updatedFilm);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
-
 }

@@ -303,7 +303,7 @@ class FilmorateApplicationTests {
                .andExpect(status().isOk());
         String updateJson = "{\"name\": \"Name\", \"description\": \"Description\", \"releaseDate\": \"1990-03-25\", \"duration\": 300}";
 
-        mockMvc.perform(put("/films/45").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/films/999").contentType(MediaType.APPLICATION_JSON)
                                        .content(updateJson))
                .andDo(print())
                .andExpect(status().isInternalServerError());

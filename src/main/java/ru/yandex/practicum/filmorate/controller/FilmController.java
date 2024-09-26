@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.exception.GlobalExceptionHandler;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -67,13 +69,16 @@ public class FilmController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Film> updateFilm(@PathVariable Long id, @RequestBody Film film) {
+    public ResponseEntity<?> updateFilm(@PathVariable Long id, @Valid @RequestBody Film film) {
         try {
             Film updatedFilm = filmService.updateFilm(id, film);
             return ResponseEntity.ok(updatedFilm);
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new GlobalExceptionHandler.ErrorResponse(e.getMessage()));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.badRequest().body(new GlobalExceptionHandler.ErrorResponse(e.getMessage()));
         }
     }
+
 }
 

@@ -66,12 +66,14 @@ public class FilmService {
 
         Film existingFilm = filmStorage.findByIdFilm(id);
         if (existingFilm == null) {
-            throw new IllegalArgumentException("Фильм с id = " + id + " не найден");
+            throw new NotFoundException("Фильм с id = " + id + " не найден");
         }
 
         validateFilm(film);
+        film.setId(id);
         return filmStorage.update(film);
     }
+
 
     public boolean exists(Long filmId) {
         return filmStorage.findByIdFilm(filmId) != null;

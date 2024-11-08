@@ -18,6 +18,7 @@ public enum Genre {
     Genre(int id) {
         this.id = id;
     }
+
     @JsonValue
     public int getId() {
         return id;

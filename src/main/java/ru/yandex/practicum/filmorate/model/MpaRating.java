@@ -19,10 +19,12 @@ public enum MpaRating {
         this.id = id;
         this.name = name;
     }
+
     @JsonValue
     public int getId() {
         return id;
     }
+
     @JsonProperty("name")
     public String getName() {
         return name;

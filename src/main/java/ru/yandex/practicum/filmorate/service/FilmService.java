@@ -1,13 +1,19 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.FilmResponse;
+import ru.yandex.practicum.filmorate.dto.GenreResponse;
+import ru.yandex.practicum.filmorate.dto.MpaRatingResponse;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -39,14 +45,14 @@ public class FilmService {
     }
 
     public void addLike(Long filmId, Long userId) {
-        Film film = findFilmById(filmId);
+        FilmResponse film = findFilmById(filmId);
         User user = findUserById(userId);
 
         film.getLikes().add(userId);
     }
 
     public void removeLike(Long filmId, Long userId) {
-        Film film = findFilmById(filmId);
+        FilmResponse film = findFilmById(filmId);
         User user = findUserById(userId);
 
         film.getLikes().remove(userId);
@@ -79,12 +85,19 @@ public class FilmService {
         return filmStorage.findByIdFilm(filmId) != null;
     }
 
-    private Film findFilmById(Long id) {
+    public FilmResponse findFilmById(Long id) {
         Film film = filmStorage.findByIdFilm(id);
         if (film == null) {
             throw new NotFoundException("Фильм с id = " + id + " не найден");
         }
-        return film;
+
+        MpaRatingResponse mpa = new MpaRatingResponse(film.getMpaRating().getId(), film.getMpaRating().getName());
+        List<GenreResponse> genres = film.getGenres().stream()
+                                         .map(genre -> new GenreResponse(genre.getId(), genre.name()))
+                                         .collect(Collectors.toList());
+
+        return new FilmResponse(film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(),
+                                film.getDuration(), mpa, genres, film.getLikes());
     }
 
     private User findUserById(Long userId) {
@@ -102,9 +115,32 @@ public class FilmService {
         if (film.getReleaseDate() == null || film.getReleaseDate().isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("Некорректная дата выхода фильма");
         }
+        if (film.getReleaseDate().isBefore(LocalDate.of(1920, 1, 1))) {
+            throw new IllegalArgumentException("Дата выхода фильма не может быть раньше 1920 года");
+        }
         if (film.getDuration() <= 0) {
             throw new IllegalArgumentException("Длительность фильма должна быть положительным числом");
         }
+    }
+
+
+    public Collection<Genre> findAllGenres() {
+        return Arrays.asList(Genre.values());
+    }
+
+    public Genre findGenreById(int id) {
+        return Genre.fromId(id);
+    }
+
+    public List<MpaRatingResponse> findAllMpaRatings() {
+        return Arrays.stream(MpaRating.values())
+                     .map(mpa -> new MpaRatingResponse(mpa.getId(), mpa.getName()))
+                     .collect(Collectors.toList());
+    }
+
+    public MpaRatingResponse findMpaRatingById(int id) {
+        MpaRating mpa = MpaRating.fromId(id);
+        return new MpaRatingResponse(mpa.getId(), mpa.getName());
     }
 }
 

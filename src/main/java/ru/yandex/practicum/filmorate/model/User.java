@@ -21,6 +21,25 @@ public class User {
         return friends;
     }
 
+    private final Set<Friendship> friendships = new HashSet<>();
+
+    public Set<Friendship> getFriendships() {
+        return friendships;
+    }
+
+    public void addFriend(User friend) {
+        friendships.add(new Friendship(this, friend, FriendshipStatus.PENDING));
+    }
+
+    public void confirmFriendship(User friend) {
+        for (Friendship friendship : friendships) {
+            if (friendship.getFriend().equals(friend) && friendship.getStatus() == FriendshipStatus.PENDING) {
+                friendship.setStatus(FriendshipStatus.CONFIRMED);
+                break;
+            }
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

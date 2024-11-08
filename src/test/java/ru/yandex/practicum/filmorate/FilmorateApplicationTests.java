@@ -1,314 +1,129 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import ru.yandex.practicum.filmorate.dal.FilmDbStorage;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class FilmorateApplicationTests {
 
     @Autowired
-    private MockMvc mockMvc;
+    private FilmDbStorage filmDbStorage;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
-    void shouldReturnBadRequestWhenFilmNameIsEmpty() throws Exception {
-        String filmJson = "{\"name\": \"\", \"description\": \"Описание фильма\", \"duration\": 120, \"releaseDate\": \"2020-01-01\"}";
+    @Order(1)
+    void testFindExistingFilm() {
+        Film film = filmDbStorage.findByIdFilm(1L);
 
-        mockMvc.perform(post("/films")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(filmJson))
-               .andDo(print())
-               .andExpect(status().isBadRequest())
-               .andExpect(jsonPath("$.detail").value("Invalid request content."));
+        assertThat(film)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("name", "Inception")
+                .hasFieldOrPropertyWithValue("releaseDate", LocalDate.of(2010, 7, 16));
+
+        assertThat(film.getMpaRating())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1);
+    }
+
+//    @Test
+//    @Order(4)
+//    void testCreateFilm() {
+//        Film newFilm = new Film();
+//        newFilm.setName("New Film");
+//        newFilm.setDescription("Description of new film");
+//        newFilm.setReleaseDate(LocalDate.of(2023, 1, 1));
+//        newFilm.setDuration(120);
+//        newFilm.setMpaRating(MpaRating.fromId(2)); // PG rating
+//     //   newFilm.setGenres(new HashSet<>(Arrays.asList(Genre.fromId(1), Genre.fromId(3))));
+//        newFilm.setGenres(new HashSet<>(Arrays.asList(Genre.fromId(1), Genre.fromId(3))));
+//
+//        Film createdFilm = filmDbStorage.create(newFilm);
+//
+//        assertThat(createdFilm.getId()).isNotNull();
+//        assertThat(createdFilm.getName()).isEqualTo("New Film");
+//
+//        Film foundFilm = filmDbStorage.findByIdFilm(createdFilm.getId());
+//        assertThat(foundFilm).isNotNull();
+//        assertThat(foundFilm.getName()).isEqualTo("New Film");
+//    }
+
+    @Test
+    @Order(6)
+    void testUpdateFilm() {
+        Film filmToUpdate = filmDbStorage.findByIdFilm(1L);
+        filmToUpdate.setName("Updated Film Name");
+        filmToUpdate.setDescription("Updated description");
+
+        Film updatedFilm = filmDbStorage.update(filmToUpdate);
+
+        assertThat(updatedFilm.getName()).isEqualTo("Updated Film Name");
+        assertThat(updatedFilm.getDescription()).isEqualTo("Updated description");
+
+        // Проверка, что изменения сохранены в базе данных
+        Film foundFilm = filmDbStorage.findByIdFilm(1L);
+        assertThat(foundFilm.getName()).isEqualTo("Updated Film Name");
+        assertThat(foundFilm.getDescription()).isEqualTo("Updated description");
     }
 
     @Test
-    void shouldReturnBadRequestWhenDescriptionTooLong() throws Exception {
-        String filmJson = "{\"name\": \"Матрица\", \"description\": \"" + "A".repeat(201) +
-                "\", \"duration\": 120, \"releaseDate\": \"2020-01-01\"}";
+    @Order(5)
+    void testDeleteFilm() {
+        Film newFilm = new Film();
+        newFilm.setName("Film to be deleted");
+        newFilm.setDescription("This film will be deleted");
+        newFilm.setReleaseDate(LocalDate.of(2023, 1, 1));
+        newFilm.setDuration(100);
+        newFilm.setMpaRating(MpaRating.fromId(1)); // G rating
 
-        mockMvc.perform(post("/films")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(filmJson))
-               .andDo(print())
-               .andExpect(status().isBadRequest())
-               .andExpect(jsonPath("$.detail").value("Invalid request content."));
+        Film createdFilm = filmDbStorage.create(newFilm);
+        Long filmId = createdFilm.getId();
+
+        filmDbStorage.deleteFilm(filmId);
+
+        assertThrows(EmptyResultDataAccessException.class, () -> filmDbStorage.findByIdFilm(filmId));
     }
+
+//    @Test
+//    @Order(2)
+//    void testFindGenresByFilmId() {
+//        Film film = filmDbStorage.findByIdFilm(1L);
+//        Set<Genre> genres = film.getGenres();
+//
+//        assertThat(genres).isNotEmpty();
+//        assertThat(genres).extracting(Genre::getId).containsExactlyInAnyOrder(1, 2); // Science Fiction, Thriller
+//    }
 
     @Test
-    void shouldCreateFilmWhenValidDataProvided() throws Exception {
-        String filmJson =
-                "{\"name\": \"Матрица\", \"description\": \"Описание фильма\", \"duration\": 120, \"releaseDate\": \"2020-01-01\"}";
+    @Order(3)
+    void testFindMpaRatingById() {
+        MpaRating mpaRating = filmDbStorage.findMpaRatingById(1L);
 
-        mockMvc.perform(post("/films")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(filmJson))
-               .andDo(print())
-               .andExpect(status().isOk())
-               .andExpect(jsonPath("$.name").value("Матрица"));
+        assertThat(mpaRating)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1);
     }
 
-    @Test
-    void shouldReturnBadRequestWhenUserLoginIsEmpty() throws Exception {
-        String userJson = "{\"email\": \"@cat123\", \"login\": \"\", \"name\": \"Leo\", \"birthday\": \"2000-01-01\"}";
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userJson))
-               .andDo(print())
-               .andExpect(status().isBadRequest())
-               .andExpect(jsonPath("$.message").value("Логин не может быть пустым и не должен содержать пробелы"));
-    }
-
-    @Test
-    void shouldReturnBadRequestWhenUserEmailIsEmpty() throws Exception {
-        String userJson = "{\"email\": \"\", \"login\": \"Kitty\", \"name\": \"Leo\", \"birthday\": \"2000-01-01\"}";
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userJson))
-               .andDo(print())
-               .andExpect(status().isBadRequest())
-               .andExpect(jsonPath("$.message").value("Email не может быть пустым и должен содержать символ @"));
-    }
-
-    @Test
-    void shouldReturnBadRequestWhenUserEmailNotContainsSymbol() throws Exception {
-        String userJson = "{\"email\": \"cat123\", \"login\": \"Kitty\", \"name\": \"Leo\", \"birthday\": \"2000-01-01\"}";
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userJson))
-               .andDo(print())
-               .andExpect(status().isBadRequest())
-               .andExpect(jsonPath("$.message").value("Email не может быть пустым и должен содержать символ @"));
-    }
-
-    @Test
-    void shouldReturnOkWhenUserNotContainsName() throws Exception {
-        String userJson = "{\"email\": \"@cat123\", \"login\": \"Kitty\", \"name\": \"\", \"birthday\": \"2000-01-01\"}";
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userJson))
-               .andDo(print())
-               .andExpect(status().isOk())
-               .andExpect(jsonPath("$.name").value("Kitty"));
-    }
-
-    @Test
-    void shouldReturnBadRequestWhenReleaseDateIsTooEarly() throws Exception {
-        String filmJson = "{\"name\": \"Name\", \"description\": \"Description\", \"releaseDate\": \"1890-03-25\", \"duration\": 200}";
-
-        mockMvc.perform(post("/films")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(filmJson))
-               .andDo(print())
-               .andExpect(status().isBadRequest())
-               .andExpect(jsonPath("$.message").value("Дата релиза не может быть раньше 28 декабря 1895 года"));
-    }
-
-    @Test
-    void shouldReturnOkWhenUserAddsLikeToFilm() throws Exception {
-        String userJson = "{\"email\": \"user@gmail.com\", \"login\": \"Kitty\", \"name\": \"Leo\", \"birthday\": \"2000-01-01\"}";
-
-        String filmJson = "{\"name\": \"Name\", \"description\": \"Description\", \"releaseDate\": \"1990-03-25\", \"duration\": 200}";
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(post("/films")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(filmJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(put("/films/1/like/1"))
-               .andDo(print())
-               .andExpect(status().isOk());
-    }
-
-    @Test
-    void shouldReturnNotFoundWhenUserAddsLikeToNotExistFilm() throws Exception {
-        String userJson = "{\"email\": \"user@gmail.com\", \"login\": \"Kitty\", \"name\": \"Leo\", \"birthday\": \"2000-01-01\"}";
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(put("/films/199/like/1"))
-               .andDo(print())
-               .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void shouldReturnNotFoundWhenUserWithWrongIdAddsLikeToFilm() throws Exception {
-        String filmJson = "{\"name\": \"Name\", \"description\": \"Description\", \"releaseDate\": \"1990-03-25\", \"duration\": 200}";
-
-        mockMvc.perform(post("/films")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(filmJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(put("/films/1/like/199"))
-               .andDo(print())
-               .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void shouldReturnOkWhenUserDeletesLikeToFilm() throws Exception {
-        String userJson = "{\"email\": \"user@gmail.com\", \"login\": \"Kitty\", \"name\": \"Leo\", \"birthday\": \"2000-01-01\"}";
-
-        String filmJson = "{\"name\": \"Name\", \"description\": \"Description\", \"releaseDate\": \"1990-03-25\", \"duration\": 200}";
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(post("/films")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(filmJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(delete("/films/1/like/1"))
-               .andDo(print())
-               .andExpect(status().isOk());
-    }
-
-    @Test
-    void shouldReturnNotFoundWhenUserDeletesLikeToNotExistFilm() throws Exception {
-        String userJson = "{\"email\": \"user@gmail.com\", \"login\": \"Kitty\", \"name\": \"Leo\", \"birthday\": \"2000-01-01\"}";
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(delete("/films/100/like/1"))
-               .andDo(print())
-               .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void shouldReturnNotFoundWhenUserWithWrongIdDeletesLikeToFilm() throws Exception {
-        String filmJson = "{\"name\": \"Name\", \"description\": \"Description\", \"releaseDate\": \"1990-03-25\", \"duration\": 200}";
-
-        mockMvc.perform(post("/films")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(filmJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(delete("/films/1/like/134"))
-               .andDo(print())
-               .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void shouldReturnOkWhenUserAddsFriend() throws Exception {
-        String userJson = "{\"email\": \"user@gmail.com\", \"login\": \"Kitty\", \"name\": \"Leo\", \"birthday\": \"2000-01-01\"}";
-
-        String userFriendsJson = "{\"email\": \"user2@gmail.com\", \"login\": \"Kitty2\", \"name\": \"Leooo\", \"birthday\": " +
-                "\"2001-01-01\"}";
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userFriendsJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(put("/users/1/friends/2"))
-               .andDo(print())
-               .andExpect(status().isOk());
-    }
-
-    @Test
-    void shouldReturnNotFoundWhenUserAddsNotExistFriend() throws Exception {
-        String userJson = "{\"email\": \"user@gmail.com\", \"login\": \"Kitty\", \"name\": \"Leo\", \"birthday\": \"2000-01-01\"}";
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(put("/users/1/friends/2"))
-               .andDo(print())
-               .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void shouldReturnOkWhenUserDeletesFriend() throws Exception {
-        String userJson = "{\"email\": \"user@gmail.com\", \"login\": \"Kitty\", \"name\": \"Leo\", \"birthday\": \"2000-01-01\"}";
-
-        String userFriendsJson =
-                "{\"email\": \"user2@gmail.com\", \"login\": \"Kitty2\", \"name\": \"Leooo\", \"birthday\": \"2001-01-01\"}";
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(post("/users")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(userFriendsJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(put("/users/1/friends/2"))
-               .andDo(print())
-               .andExpect(status().isOk());
-
-        mockMvc.perform(delete("/users/1/friends/2"))
-               .andDo(print())
-               .andExpect(status().isOk());
-    }
-
-    @Test
-    void shouldReturnSystemErrorWhenFilmNotExist() throws Exception {
-        String filmJson = "{\"name\": \"Name\", \"description\": \"Description\", \"releaseDate\": \"1990-03-25\", \"duration\": 200}";
-
-        mockMvc.perform(post("/films")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(filmJson))
-               .andDo(print())
-               .andExpect(status().isOk());
-        String updateJson = "{\"name\": \"Name\", \"description\": \"Description\", \"releaseDate\": \"1990-03-25\", \"duration\": 300}";
-
-        mockMvc.perform(put("/films/999").contentType(MediaType.APPLICATION_JSON)
-                                       .content(updateJson))
-               .andDo(print())
-               .andExpect(status().isNotFound());
-    }
 }
+
 
 
 

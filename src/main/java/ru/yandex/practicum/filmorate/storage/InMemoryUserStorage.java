@@ -10,14 +10,19 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
 
     private final Logger log = LoggerFactory.getLogger(UserController.class);
     private final Map<Long, User> users = new HashMap<>();
+    private final Map<Long, Set<Long>> friendships = new HashMap<>();
+
     private long currentMaxId = 0;
 
 
@@ -105,7 +110,63 @@ public class InMemoryUserStorage implements UserStorage {
         users.remove(id);
     }
 
+    @Override
+    public void addFriendship(Long userId, Long friendId) {
+        if (!users.containsKey(userId) || !users.containsKey(friendId)) {
+            log.error("Ошибка: один из пользователей не найден");
+            throw new NotFoundException("Один из пользователей не найден");
+        }
+
+        friendships.computeIfAbsent(userId, k -> new HashSet<>()).add(friendId);
+
+        friendships.computeIfAbsent(friendId, k -> new HashSet<>()).add(userId);
+
+        log.info("Пользователи с id {} и {} теперь друзья", userId, friendId);
+    }
+
+    @Override
+    public Set<User> getUserFriends(Long userId) {
+
+        if (!users.containsKey(userId)) {
+            log.error("Ошибка: пользователь с id {} не найден", userId);
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
+        Set<Long> friendIds = friendships.getOrDefault(userId, Collections.emptySet());
+
+        Set<User> friends = new HashSet<>();
+        for (Long friendId : friendIds) {
+            User friend = users.get(friendId);
+            if (friend != null) {
+                friends.add(friend);
+            }
+        }
+        return friends;
+    }
+
+    @Override
+    public void removeFriendship(Long userId, Long friendId) {
+        if (!users.containsKey(userId) || !users.containsKey(friendId)) {
+            log.error("Ошибка: один из пользователей не найден");
+            throw new NotFoundException("Один из пользователей не найден");
+        }
+
+        Set<Long> userFriends = friendships.get(userId);
+        if (userFriends != null) {
+            userFriends.remove(friendId);
+        }
+
+        Set<Long> friendFriends = friendships.get(friendId);
+        if (friendFriends != null) {
+            friendFriends.remove(userId);
+        }
+
+        log.info("Пользователи с id {} и {} больше не друзья", userId, friendId);
+    }
+
+
     private long getNextId() {
         return ++currentMaxId;
     }
+
+
 }

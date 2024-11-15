@@ -51,15 +51,6 @@ INSERT INTO film_genres (film_id, genre_id) VALUES
 (4, 4),
 (4, 2);
 
--- Лайки к фильмам
-INSERT INTO likes (user_id, film_id) VALUES
-(1, 1),
-(1, 2),
-(2, 1),
-(2, 3),
-(3, 2),
-(3, 4);
-
 -- Инициализация дружбы между пользователями
 INSERT INTO friendships (user_id, friend_id, status) VALUES
 (1, 2, 'FRIENDS'),

@@ -1,5 +1,8 @@
 package ru.yandex.practicum.filmorate.dto;
 
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.MpaRating;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -12,12 +15,12 @@ public class FilmResponse {
     private LocalDate releaseDate;
     private int duration;
 
-    private MpaRatingResponse mpa;
-    private List<GenreResponse> genres;
+    private MpaRating mpa;
+    private List<Genre> genres;
     private Set<Long> likes;
 
-    public FilmResponse(Long id, String name, String description, LocalDate releaseDate, int duration, MpaRatingResponse mpa,
-                        List<GenreResponse> genres, Set<Long> likes) {
+    public FilmResponse(Long id, String name, String description, LocalDate releaseDate, int duration, MpaRating mpa,
+                        List<Genre> genres, Set<Long> likes) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -48,11 +51,11 @@ public class FilmResponse {
         return duration;
     }
 
-    public MpaRatingResponse getMpa() {
+    public MpaRating getMpa() {
         return mpa;
     }
 
-    public List<GenreResponse> getGenres() {
+    public List<Genre> getGenres() {
         return genres;
     }
 
@@ -80,11 +83,11 @@ public class FilmResponse {
         this.duration = duration;
     }
 
-    public void setMpa(MpaRatingResponse mpa) {
+    public void setMpa(MpaRating mpa) {
         this.mpa = mpa;
     }
 
-    public void setGenres(List<GenreResponse> genres) {
+    public void setGenres(List<Genre> genres) {
         this.genres = genres;
     }
 
@@ -92,3 +95,4 @@ public class FilmResponse {
         this.likes = likes;
     }
 }
+

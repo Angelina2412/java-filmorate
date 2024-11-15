@@ -168,5 +168,30 @@ public class InMemoryUserStorage implements UserStorage {
         return ++currentMaxId;
     }
 
+    @Override
+    public Set<User> getCommonFriends(Long userId, Long otherUserId) {
+        if (!users.containsKey(userId) || !users.containsKey(otherUserId)) {
+            log.error("Ошибка: один из пользователей не найден");
+            throw new NotFoundException("Один из пользователей не найден");
+        }
+
+        Set<Long> userFriends = friendships.getOrDefault(userId, Collections.emptySet());
+        Set<Long> otherUserFriends = friendships.getOrDefault(otherUserId, Collections.emptySet());
+
+        Set<Long> commonFriendsIds = new HashSet<>(userFriends);
+        commonFriendsIds.retainAll(otherUserFriends);
+
+        Set<User> commonFriends = new HashSet<>();
+        for (Long friendId : commonFriendsIds) {
+            User friend = users.get(friendId);
+            if (friend != null) {
+                commonFriends.add(friend);
+            }
+        }
+
+        return commonFriends;
+    }
+
+
 
 }

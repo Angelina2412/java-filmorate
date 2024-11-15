@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -64,13 +63,9 @@ public class UserService {
     }
 
     public Set<User> getCommonFriends(Long userId, Long otherUserId) {
-        User user = findUserById(userId);
-        User otherUser = findUserById(otherUserId);
-
-        Set<User> commonFriends = new HashSet<>(user.getFriends());
-        commonFriends.retainAll(otherUser.getFriends());
-        return commonFriends;
+        return userStorage.getCommonFriends(userId, otherUserId);
     }
+
 
     public Set<User> getUserFriends(Long userId) {
         User user = userStorage.findByIdUser(userId);
@@ -88,11 +83,9 @@ public class UserService {
         userStorage.removeFriendship(userId, friendId);
 
         user.getFriends().remove(friend);
-        friend.getFriends().remove(user);
-
         userStorage.update(user);
-        userStorage.update(friend);
     }
+
 
 
     public static void validateUser(User user) {

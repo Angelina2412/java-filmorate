@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -86,7 +87,11 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User findByIdUser(Long id) {
         String sql = "SELECT * FROM users WHERE user_id = ?";
-        return jdbcTemplate.queryForObject(sql, userRowMapper, id);
+        try {
+            return jdbcTemplate.queryForObject(sql, userRowMapper, id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NotFoundException("Пользователь с id = " + id + " не найден");
+        }
     }
 
     @Override
@@ -115,4 +120,15 @@ public class UserDbStorage implements UserStorage {
         jdbcTemplate.update(sql, userId, friendId, friendId, userId);
     }
 
+    @Override
+    public Set<User> getCommonFriends(Long userId, Long otherUserId) {
+        String sql = "SELECT u.* FROM users u " +
+                "JOIN friendships f1 ON u.user_id = f1.friend_id " +
+                "WHERE f1.user_id = ? " +
+                "AND u.user_id IN (" +
+                "    SELECT u2.user_id FROM users u2 " +
+                "    JOIN friendships f2 ON u2.user_id = f2.friend_id " +
+                "    WHERE f2.user_id = ?)";
+        return new HashSet<>(jdbcTemplate.query(sql, userRowMapper, userId, otherUserId));
+    }
 }

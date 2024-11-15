@@ -50,5 +50,3 @@ CREATE TABLE IF NOT EXISTS friendships (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (friend_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
-
-

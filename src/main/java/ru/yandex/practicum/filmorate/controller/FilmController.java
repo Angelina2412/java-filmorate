@@ -45,14 +45,10 @@ public class FilmController {
     @PutMapping
     public ResponseEntity<?> update(@Valid @RequestBody Film film) {
         log.info("Обновление данных о фильме: {}", film);
-        try {
-            Film updatedFilm = filmService.update(film);
-            return ResponseEntity.ok(updatedFilm);
-        } catch (Exception e) {
-            log.error("Ошибка при обновлении фильма: ", e);
-            return ResponseEntity.badRequest().body("Ошибка обновления фильма. Проверьте данные.");
-        }
+        Film updatedFilm = filmService.update(film);
+        return ResponseEntity.ok(updatedFilm);
     }
+
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable Long id, @PathVariable Long userId) {

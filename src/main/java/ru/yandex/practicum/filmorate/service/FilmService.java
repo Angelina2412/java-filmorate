@@ -2,8 +2,6 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmResponse;
-import ru.yandex.practicum.filmorate.dto.GenreResponse;
-import ru.yandex.practicum.filmorate.dto.MpaRatingResponse;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -13,11 +11,9 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -44,12 +40,12 @@ public class FilmService {
         return filmStorage.update(film);
     }
 
-    public void addLike(Long filmId, Long userId) {
-        FilmResponse film = findFilmById(filmId);
-        User user = findUserById(userId);
-
-        film.getLikes().add(userId);
-    }
+//    public void addLike(Long filmId, Long userId) {
+//        FilmResponse film = findFilmById(filmId);
+//        User user = findUserById(userId);
+//
+//        film.getLikes().add(userId);
+//    }
 
     public void removeLike(Long filmId, Long userId) {
         FilmResponse film = findFilmById(filmId);
@@ -59,10 +55,7 @@ public class FilmService {
     }
 
     public List<Film> getMostPopularFilms(int count) {
-        return filmStorage.findAll().stream()
-                          .sorted(Comparator.comparingInt(film -> -film.getLikes().size()))
-                          .limit(count)
-                          .collect(Collectors.toList());
+        return filmStorage.getMostPopularFilms(count);
     }
 
     public Film updateFilm(Long id, Film film) {
@@ -80,7 +73,6 @@ public class FilmService {
         return filmStorage.update(film);
     }
 
-
     public boolean exists(Long filmId) {
         return filmStorage.findByIdFilm(filmId) != null;
     }
@@ -91,13 +83,11 @@ public class FilmService {
             throw new NotFoundException("Фильм с id = " + id + " не найден");
         }
 
-        MpaRatingResponse mpa = new MpaRatingResponse(film.getMpaRating().getId(), film.getMpaRating().getName());
-        List<GenreResponse> genres = film.getGenres().stream()
-                                         .map(genre -> new GenreResponse(genre.getId(), genre.name()))
-                                         .collect(Collectors.toList());
+        MpaRating mpaRating = film.getMpaRating();
+        List<Genre> genres = new ArrayList<>(film.getGenres());
 
         return new FilmResponse(film.getId(), film.getName(), film.getDescription(), film.getReleaseDate(),
-                                film.getDuration(), mpa, genres, film.getLikes());
+                                film.getDuration(), mpaRating, genres, film.getLikes());
     }
 
     private User findUserById(Long userId) {
@@ -121,26 +111,54 @@ public class FilmService {
         if (film.getDuration() <= 0) {
             throw new IllegalArgumentException("Длительность фильма должна быть положительным числом");
         }
+        try {
+            filmStorage.findMpaRatingById(film.getMpaRating().getId());
+        } catch (NotFoundException e) {
+            throw new IllegalArgumentException("Указан некорректный рейтинг MPA с id = " + film.getMpaRating().getId());
+        }
+        if (film.getGenres() != null) {
+            for (Genre genre : film.getGenres()) {
+                try {
+                    filmStorage.findGenreById(genre.getId());
+                } catch (NotFoundException e) {
+                    throw new IllegalArgumentException("Указан некорректный жанр с id = " + genre.getId());
+                }
+            }
+        }
     }
 
-
-    public Collection<Genre> findAllGenres() {
-        return Arrays.asList(Genre.values());
+    public List<Genre> findAllGenres() {
+        return filmStorage.findAllGenres();
     }
 
     public Genre findGenreById(int id) {
-        return Genre.fromId(id);
+        return filmStorage.findGenreById(id);
     }
 
-    public List<MpaRatingResponse> findAllMpaRatings() {
-        return Arrays.stream(MpaRating.values())
-                     .map(mpa -> new MpaRatingResponse(mpa.getId(), mpa.getName()))
-                     .collect(Collectors.toList());
+    public List<MpaRating> findAllMpaRatings() {
+        return filmStorage.findAllMpaRatings();
     }
 
-    public MpaRatingResponse findMpaRatingById(int id) {
-        MpaRating mpa = MpaRating.fromId(id);
-        return new MpaRatingResponse(mpa.getId(), mpa.getName());
+    public MpaRating findMpaRatingById(int id) {
+        MpaRating mpaRating = filmStorage.findMpaRatingById(id);
+        if (mpaRating == null) {
+            throw new NotFoundException("Рейтинг с id = " + id + " не найден");
+        }
+        return mpaRating;
     }
+
+    public void addLike(Long filmId, Long userId) {
+        Film film = filmStorage.findByIdFilm(filmId);
+        User user = userStorage.findByIdUser(userId);
+
+        if (film != null && user != null) {
+            filmStorage.addLike(filmId, userId);
+        } else {
+            throw new NotFoundException("Фильм или пользователь не найден");
+        }
+    }
+
+
 }
+
 

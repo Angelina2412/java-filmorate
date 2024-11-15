@@ -1,46 +1,30 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+public class Genre {
+    private Integer id;
+    private String name;
 
-public enum Genre {
-    Комедия(1),
-    Драма(2),
-    Мультфильм(3),
-    Триллер(4),
-    Документальный(5),
-    Боевик(6);
-
-    private final int id;
-
-    Genre(int id) {
+    public Genre() {
+    }
+    public Genre(Integer id, String name) {
         this.id = id;
+        this.name = name;
     }
 
-    @JsonValue
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public static Genre fromId(int id) {
-        for (Genre genre : values()) {
-            if (genre.getId() == id) {
-                return genre;
-            }
-        }
-        throw new NotFoundException("Жанр с таким id отсутствует: " + id);
+    public void setId(Integer id) {
+        this.id = id;
     }
 
-    @JsonCreator
-    public static Genre fromJson(@JsonProperty("id") int id) {
-        for (Genre genre : values()) {
-            if (genre.getId() == id) {
-                return genre;
-            }
-        }
-        throw new NotFoundException("Жанр с таким id отсутствует: " + id);
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
 

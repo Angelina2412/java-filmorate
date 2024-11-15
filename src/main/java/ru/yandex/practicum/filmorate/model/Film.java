@@ -10,10 +10,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.yandex.practicum.filmorate.dto.MpaRatingWrapper;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -41,12 +41,11 @@ public class Film {
     @JsonProperty("duration")
     private int duration;
 
-    @Builder.Default
     @JsonProperty("genres")
-    private Set<Genre> genres = new HashSet<>();
+    private List<Genre> genres;
 
     @JsonProperty("mpa")
-    private MpaRatingWrapper mpaRating;
+    private MpaRating mpaRating;
 
     @Builder.Default
     @JsonProperty("likes")
@@ -56,12 +55,22 @@ public class Film {
         return likes;
     }
 
-    public void setMpaRating(MpaRating mpaRating) {
-        this.mpaRating = new MpaRatingWrapper(mpaRating);
+    public MpaRating getMpaRating() {
+        return mpaRating;
     }
 
-    public MpaRating getMpaRating() {
-        return mpaRating != null ? mpaRating.getMpaRating() : null;
+    public void setMpaRating(MpaRating mpaRating) {
+        this.mpaRating = mpaRating;
     }
+
+    public List<Genre> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(List<Genre> genres) {
+        this.genres = genres;
+    }
+
 }
+
 

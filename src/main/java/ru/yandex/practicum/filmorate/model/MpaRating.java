@@ -1,52 +1,27 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+public class MpaRating {
+    private Integer id;
+    private String name;
 
-public enum MpaRating {
-    G(1, "G"),
-    PG(2, "PG"),
-    PG13(3, "PG-13"),
-    R(4, "R"),
-    NC_17(5, "NC-17");
-
-    private final int id;
-    private final String name;
-
-    MpaRating(int id, String name) {
-        this.id = id;
-        this.name = name;
+    public MpaRating() {
     }
 
-    @JsonValue
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    @JsonProperty("name")
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }
 
-    public static MpaRating fromId(int id) {
-        for (MpaRating rating : values()) {
-            if (rating.getId() == id) {
-                return rating;
-            }
-        }
-        throw new NotFoundException("MPA с таким id отсутствует: " + id);
-    }
-
-    @JsonCreator
-    public static MpaRating fromJson(@JsonProperty("id") int id) {
-        for (MpaRating rating : values()) {
-            if (rating.getId() == id) {
-                return rating;
-            }
-        }
-        throw new NotFoundException("MPA с таким id отсутствует: " + id);
+    public void setName(String name) {
+        this.name = name;
     }
 }
+
 

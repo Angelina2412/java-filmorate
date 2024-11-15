@@ -18,8 +18,11 @@ public interface FilmStorage {
     Film findByIdFilm(Long id);
 
     void deleteFilm(Long id);
+
     List<Genre> findAllGenres();
+
     Genre findGenreById(int id);
+
     List<MpaRating> findAllMpaRatings();
 
     MpaRating findMpaRatingById(int id);

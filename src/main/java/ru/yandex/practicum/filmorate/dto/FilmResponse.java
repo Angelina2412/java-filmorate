@@ -71,28 +71,9 @@ public class FilmResponse {
         this.name = name;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setReleaseDate(LocalDate releaseDate) {
-        this.releaseDate = releaseDate;
-    }
-
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
-
-    public void setMpa(MpaRating mpa) {
-        this.mpa = mpa;
-    }
-
     public void setGenres(List<Genre> genres) {
         this.genres = genres;
     }
 
-    public void setLikes(Set<Long> likes) {
-        this.likes = likes;
-    }
 }
 

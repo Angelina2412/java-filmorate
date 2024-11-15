@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 public class MpaRating {
+
     private Integer id;
     private String name;
 

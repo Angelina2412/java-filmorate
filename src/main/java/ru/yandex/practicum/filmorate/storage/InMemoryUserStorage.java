@@ -163,7 +163,6 @@ public class InMemoryUserStorage implements UserStorage {
         log.info("Пользователи с id {} и {} больше не друзья", userId, friendId);
     }
 
-
     private long getNextId() {
         return ++currentMaxId;
     }
@@ -191,7 +190,4 @@ public class InMemoryUserStorage implements UserStorage {
 
         return commonFriends;
     }
-
-
-
 }

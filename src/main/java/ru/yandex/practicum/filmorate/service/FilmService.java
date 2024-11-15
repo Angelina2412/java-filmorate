@@ -40,13 +40,6 @@ public class FilmService {
         return filmStorage.update(film);
     }
 
-//    public void addLike(Long filmId, Long userId) {
-//        FilmResponse film = findFilmById(filmId);
-//        User user = findUserById(userId);
-//
-//        film.getLikes().add(userId);
-//    }
-
     public void removeLike(Long filmId, Long userId) {
         FilmResponse film = findFilmById(filmId);
         User user = findUserById(userId);
@@ -157,8 +150,6 @@ public class FilmService {
             throw new NotFoundException("Фильм или пользователь не найден");
         }
     }
-
-
 }
 
 

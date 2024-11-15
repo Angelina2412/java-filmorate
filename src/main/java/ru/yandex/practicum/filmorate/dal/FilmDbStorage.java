@@ -104,7 +104,6 @@ public class FilmDbStorage implements FilmStorage {
         return film;
     }
 
-
     @Override
     public Film findByIdFilm(Long id) {
         String sql = "SELECT * FROM films WHERE film_id = ?";
@@ -129,13 +128,17 @@ public class FilmDbStorage implements FilmStorage {
 
     private void saveGenres(Film film) {
         if (film.getGenres() == null || film.getGenres().isEmpty()) {
-            jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", film.getId());
-        } else {
-            jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", film.getId());
+            return;
+        }
 
-            String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
-            for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update(sql, film.getId(), genre.getId()); // Используем id жанра
+        jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", film.getId());
+
+        String sql = "INSERT INTO film_genres (film_id, genre_id) " +
+                "SELECT ?, ? FROM dual WHERE NOT EXISTS (SELECT 1 FROM film_genres WHERE film_id = ? AND genre_id = ?)";
+
+        for (Genre genre : film.getGenres()) {
+            if (genre != null) {
+                jdbcTemplate.update(sql, film.getId(), genre.getId(), film.getId(), genre.getId());
             }
         }
     }
@@ -199,8 +202,12 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public List<Film> getMostPopularFilms(int count) {
-        String sql = "SELECT * FROM films WHERE film_id IN (" +
-                "SELECT film_id FROM likes GROUP BY film_id ORDER BY COUNT(user_id) DESC LIMIT ?)";
+        String sql = "SELECT f.*, COUNT(l.user_id) AS like_count " +
+                "FROM films f " +
+                "LEFT JOIN likes l ON f.film_id = l.film_id " +
+                "GROUP BY f.film_id " +
+                "ORDER BY like_count DESC " +
+                "LIMIT ?";
         return jdbcTemplate.query(sql, filmRowMapper, count);
     }
 

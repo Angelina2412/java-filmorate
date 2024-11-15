@@ -27,25 +27,12 @@ public class User {
         return friendships;
     }
 
-    public void addFriend(User friend) {
-        friendships.add(new Friendship(this, friend, FriendshipStatus.PENDING));
-    }
-
-    public void confirmFriendship(User friend) {
-        for (Friendship friendship : friendships) {
-            if (friendship.getFriend().equals(friend) && friendship.getStatus() == FriendshipStatus.PENDING) {
-                friendship.setStatus(FriendshipStatus.CONFIRMED);
-                break;
-            }
-        }
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id.equals(user.id); // Сравнение только по id
+        return id.equals(user.id);
     }
 
     @Override

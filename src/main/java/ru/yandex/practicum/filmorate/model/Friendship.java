@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.model;
 import java.util.Objects;
 
 public class Friendship {
+
     private User requester;
     private User friend;
     private FriendshipStatus status;
@@ -13,20 +14,8 @@ public class Friendship {
         this.status = status;
     }
 
-    public User getRequester() {
-        return requester;
-    }
-
-    public void setRequester(User requester) {
-        this.requester = requester;
-    }
-
     public User getFriend() {
         return friend;
-    }
-
-    public void setFriend(User friend) {
-        this.friend = friend;
     }
 
     public FriendshipStatus getStatus() {

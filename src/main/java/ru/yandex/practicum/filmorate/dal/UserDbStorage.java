@@ -69,7 +69,6 @@ public class UserDbStorage implements UserStorage {
         return user;
     }
 
-
     @Override
     public User update(User user) {
         try {
@@ -100,10 +99,8 @@ public class UserDbStorage implements UserStorage {
         jdbcTemplate.update(sql, id);
     }
 
-
     @Override
     public void addFriendship(Long userId, Long friendId) {
-        // Проверка, чтобы не было дублирующих записей
         String checkSql = "SELECT COUNT(*) FROM friendships WHERE user_id = ? AND friend_id = ?";
         Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, userId, friendId);
 

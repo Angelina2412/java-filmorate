@@ -33,22 +33,16 @@ public class UserService {
     }
 
     public void addFriend(Long userId, Long friendId) {
-        User user = findUserById(userId);
-        if (user == null) {
+        // Проверка наличия пользователей
+        if (findUserById(userId) == null) {
             throw new NotFoundException("Пользователь с id = " + userId + " не найден");
         }
-
-        User friend = findUserById(friendId);
-        if (friend == null) {
-            System.out.println("Друг с id = " + friendId + " не найден");
+        if (findUserById(friendId) == null) {
             throw new NotFoundException("Друг с id = " + friendId + " не найден");
         }
 
+        // Добавление записи в таблицу friendships
         userStorage.addFriendship(userId, friendId);
-
-        user.getFriends().add(friend);
-
-        userStorage.update(user);
     }
 
 
@@ -77,13 +71,16 @@ public class UserService {
     }
 
     public void removeFriend(Long userId, Long friendId) {
-        User user = findUserById(userId);
-        User friend = findUserById(friendId);
+        // Проверка наличия пользователей
+        if (findUserById(userId) == null) {
+            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
+        }
+        if (findUserById(friendId) == null) {
+            throw new NotFoundException("Друг с id = " + friendId + " не найден");
+        }
 
+        // Удаление записи только для userId
         userStorage.removeFriendship(userId, friendId);
-
-        user.getFriends().remove(friend);
-        userStorage.update(user);
     }
 
 

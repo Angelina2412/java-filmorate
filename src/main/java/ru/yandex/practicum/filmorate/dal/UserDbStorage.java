@@ -101,9 +101,16 @@ public class UserDbStorage implements UserStorage {
     }
 
 
+    @Override
     public void addFriendship(Long userId, Long friendId) {
-        String sql = "INSERT INTO friendships (user_id, friend_id) VALUES (?, ?)";
-        jdbcTemplate.update(sql, userId, friendId);
+        // Проверка, чтобы не было дублирующих записей
+        String checkSql = "SELECT COUNT(*) FROM friendships WHERE user_id = ? AND friend_id = ?";
+        Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, userId, friendId);
+
+        if (count == null || count == 0) {
+            String sql = "INSERT INTO friendships (user_id, friend_id) VALUES (?, ?)";
+            jdbcTemplate.update(sql, userId, friendId);
+        }
     }
 
     @Override
@@ -116,8 +123,8 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void removeFriendship(Long userId, Long friendId) {
-        String sql = "DELETE FROM friendships WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)";
-        jdbcTemplate.update(sql, userId, friendId, friendId, userId);
+        String sql = "DELETE FROM friendships WHERE user_id = ? AND friend_id = ?";
+        jdbcTemplate.update(sql, userId, friendId);
     }
 
     @Override

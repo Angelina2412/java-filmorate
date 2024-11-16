@@ -21,12 +21,18 @@ public class User {
         return friends;
     }
 
+    private final Set<Friendship> friendships = new HashSet<>();
+
+    public Set<Friendship> getFriendships() {
+        return friendships;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id.equals(user.id); // Сравнение только по id
+        return id.equals(user.id);
     }
 
     @Override

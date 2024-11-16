@@ -36,8 +36,9 @@ public class UserController {
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        log.info("Добавлен новый пользователь с id = {}", user.getId());
-        return userService.create(user);
+        User createdUser = userService.create(user);
+        log.info("Добавлен новый пользователь с id = {}", createdUser.getId());
+        return createdUser;
     }
 
     @PutMapping
@@ -73,7 +74,8 @@ public class UserController {
     @GetMapping("/{id}/friends")
     public ResponseEntity<Set<User>> getUserFriends(@PathVariable Long id) {
         Set<User> friends = userService.getUserFriends(id);
-        return ResponseEntity.ok().body(friends);
+        return ResponseEntity.ok(friends);
+
     }
 }
 
